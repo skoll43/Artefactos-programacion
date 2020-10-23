@@ -1,0 +1,2 @@
+datos:
+cada en pagina en portada pesa entre 200kb y 300 kb

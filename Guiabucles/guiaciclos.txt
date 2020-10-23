@@ -1,0 +1,47 @@
+Ejercicios Ciclos
+1. Muestre en pantalla los números del 1 al 100 utilizando ciclo for (Para).
+2. Muestre los números del 1 al 100 utilizando while (Mientras)
+3. Calcule la sumatoria de los números del 1 al 100
+4. Desarrolle un algoritmo que muestre en pantalla 1010101, la cantidad de dígitos a mostrar
+debe ser determinada por el usuario.
+5. Desarrolle un algoritmo que permita a un usuario ingresar letras hasta que decida salir del
+programa y finalmente muestre cuantas letras ingreso.
+6. Desarrolle un algoritmo que encuentre el mayor de los números ingresados por el usuario,
+el usuario debe decidir cuándo dejar de ingresar números.
+7. Escribir un programa que muestre todas las potencias de un entero N que sean menores
+que un valor especificado como límite.
+8. Crear un programa que lea un Número 5 dígitos e indique cuantos ceros lo componen.
+El número no puede comenzar por cero.
+9. Crear un programa para determinar cuántas cifras tiene un número entero N
+10. Diseñar un programa que lea N números enteros y determine el promedio de ellos.
+11. Hacer un programa para calcular el valor de la suma de los N primeros enteros. Por
+ejemplo si N es 5 la suma es 15 ( 1 + 2 + 3 + 4 + 5 = 15)
+12. Diseñar un programa que lea 10 letras e indique cuántas de ellas son vocales.
+13. Crear un programa que lea varios dígitos hasta que se ingrese un cero. Luego imprimir:
+a. La cantidad de pares
+b. Promedio de impares
+c. El mayor de todos los dígitos 
+14. Crear un programa que Imprima
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ABCDEFGHIJKLMNOPQRSTUVWX
+ABCDEFGHIJKLMNOPQRSTUV
+ABCDEFGHIJKLMNOPQRST
+ABCDEFGHIJKLMNOPQR
+ABCDEFGHIJKLMNOP
+ABCDEFGHIJKLMN
+ABCDEFGHIJKL
+ABCDEFGHIJ
+ABCDEFGH
+ABCDEF
+ABCD
+AB
+15. Imprimir los primeros N números primos desde 1 en adelante.
+16. Crear un programa que calcule e imprima la suma de los primeros 100 Números enteros
+positivos. Se debe imprimir resultados parciales después de cada 10 números sumados.
+Por ejemplo, se debe mostrar la primera suma parcial desde 1 hasta 10, la segunda suma
+parcial desde 11 a 20 y así sucesivamente hasta tener la suma total.
+17. Encontrar, imprimir y contar todos los números de 4 dígitos que cumplen con la
+condición de que la suma de sus dígitos de 9. Hasta 10000.
+18. Encontrar e imprimir todos los números de 4 dígitos que cumplan con la condición de
+que la suma de los dígitos pares es igual a la suma de los dígitos impares.
+19. Crear un programa que invierta un número entero cualquiera
