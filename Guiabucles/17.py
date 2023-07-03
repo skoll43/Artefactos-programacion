@@ -1,3 +1,4 @@
+
 #17. Encontrar, imprimir y contar todos los números de 4 dígitos que cumplen con la
 #condición de que la suma de sus dígitos de 9. Hasta 10000.
 contador = 0

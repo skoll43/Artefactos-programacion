@@ -1,0 +1,720 @@
+var pramEncodedData =null;
+var loggedInUser =null;
+var PRAM_SITE = "MERCL";
+var ticketNYT = null;
+var ticketElPais = null;
+var ticketMedTv = null;
+
+if (window.location.href.indexOf("ecn.cl")!=-1) PRAM_SITE="MERCLECN";
+String.prototype.rtPram = rtPram = function(s)
+ {
+    return (s = (s) ? s : this).split('').map(function(_)
+     {
+        if (!_.match(/[A-Za-z]/)) return _;
+        c = Math.floor(_.charCodeAt(0) / 97);
+        k = (_.toLowerCase().charCodeAt(0) - 96) % 26 + 13;
+        return String.fromCharCode(k + ((c == 0) ? 64 : 96));
+     }).join('');
+ };
+$(document).ready(function () {
+     $('#modal_limit_articulos').modal({
+        backdrop: 'static',
+        keyboard: false,
+        show:false
+      });
+});
+
+var loaded;
+var array_roles;
+if (typeof console == "undefined") var console = { log: function() {} }; 
+
+function createCookie(name,value,days) {
+	if (days) {
+		var date = new Date();
+		date.setTime(date.getTime()+(days*24*60*60*1000));
+		var expires = "; expires="+date.toGMTString();
+	}
+	else var expires = "";
+	document.cookie = name+"="+value+expires+"; path=/";
+	console.log(name+"="+value+expires+"; path=/");
+}
+
+function readCookie(name) {
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0;i < ca.length;i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+	}
+	return null;
+}
+
+function eraseCookie(name) {
+	createCookie(name,"",-1);
+}
+
+function JSONP (url, params, callback) {
+	console.log ("url");
+	console.log (url);
+    var qs = [],
+        fx = 'json' + new Date().getTime()
+    window[fx] 			= callback
+    params['callback'] 	= fx
+    for(var key in params) {
+        qs.push(key + '=' + encodeURIComponent(params[key]))
+    } 
+    var s   = document.createElement('script') 
+    s.type  = 'text/javascript' 
+    s.async = true 
+    s.src   = url + '?' + qs.join('&') 
+//    s.onerror = callback ('{"error":1}')
+    var ss  = document.getElementsByTagName('script')[0] 
+    ss.parentNode.insertBefore(s, ss) 
+}
+
+// CHECK CONTENT ARRAY
+function isInArray(value, array) {
+  return array.indexOf(value) > -1;
+}
+
+var DaysToFinishSuscriber;
+var NumDaysToFinish = 30;
+var CheckRolSite;
+var TempRolMer;
+var TempRolEmpresa;
+
+var localAppToken = localStorage.getItem("appToken");
+var oldT = readCookie("T");
+if (localAppToken!=null && localAppToken.length!=64) {
+        localAppToken = null;
+        localStorage.removeItem("appToken");
+};
+if (readCookie("appToken") || localAppToken) {
+  if (readCookie("appToken")) {
+        if (readCookie("appToken").length==64) {
+                pramEncodedData = readCookie("appToken");
+                localStorage.setItem("appToken",pramEncodedData);
+        } else {
+                Cookies.remove("appToken", {path:"/", domain:".elmercurio.com"});
+
+        }
+
+  } else {
+        pramEncodedData = localAppToken;
+
+  }
+    jQuery.ajax({
+      url: 'https://digital.elmercurio.com/Authenticate' ,
+      type: "GET",
+      dataType: "text",
+      contentType: "text/plain; charset=utf-8",
+      data: 'appToken='+pramEncodedData+'&action=validateToken',
+
+      success: function(validToken){
+
+	console.log("validToken:"+validToken);
+
+    if (validToken.indexOf("VALID")!=0) {
+		pramEncodedData = null;
+		localStorage.setItem("appToken",pramEncodedData);
+		if (validToken.indexOf("INVALID.RENEW")>=0) {
+			bloquearPagina();
+			$('.cont_suscrib_user').hide();
+          		$('.renew_subscribe').show();
+          		return;
+		}
+    } else {
+	//if (document.referrer.indexOf('elmercurio.com') >= 0) {	
+        $.getJSON('https://digital.elmercurio.com/Authenticate?id='+pramEncodedData+'&action=getUser', function(userPram) {
+		addPixelSubscriber();
+		addPixelToken(pramEncodedData);
+
+		createCookie("T",rtPram(pramEncodedData),5);
+		console.log("oldT:"+oldT);
+		console.log(userPram);
+		if (!oldT) location.reload();
+		//ticket={Bodega:'ElPais',Usado:false,Ticket:'https://www.kioskoymas.com/login?redir=micuenta#cod=A567'};
+		//userPram.Tickets.push(ticket);
+		//ticket={Bodega:'NYT',Usado:false,Ticket:'https://www.nytimes.com'};
+		//userPram.Tickets.push(ticket);
+		user_id = userPram.user.username;
+
+		CheckRolSite = userPram.Roles;
+		TempRolMer = isInArray('MERS-TEMPORAL',CheckRolSite);
+		TempRolEmpresa = isInArray('WMEmpresas',CheckRolSite);
+		
+		// TICKETS 
+
+		//if (userPram.Tickets.length>0) {
+		   alreadyModal=false;
+	    	   userPram.Tickets.forEach(function(item) {
+			console.log(item);
+	        	if (item.Bodega == 'NYT' && ! item.Usado && !alreadyModal) {
+	            		ticketNYT = item.Ticket;
+	            		$('#modal_mer_nyt').modal('show');
+				alreadyModal=true;
+	        	} 
+
+	        	if (item.Bodega == 'ElPais') { 
+		   	   ticketElPais = item.Ticket;
+			   console.log("ticketelPais:"+ticketElPais);
+			   if (! item.Usado ) {
+	        		if(typeof isMobileVersion != 'undefined' && isMobileVersion) {
+	        			$('li.li_prod_mer.elpais a').attr("onclick", "if(ticketElPais){$('#menu').trigger('close');$('#modal_mer_pais').modal('show');return false;};");
+	        		} 
+				$('#botonera_revistas .elpais a').attr("onclick", "if(ticketElPais){$('#modal_mer_pais').modal('show');return false;};");
+	            		if (!alreadyModal) {
+					$('#codeElPais').val(ticketElPais);
+	            			$('#modal_mer_pais').modal('show');
+					alreadyModal=true;
+				}
+	                   } else {
+
+                	       		//$('#botonera_revistas .elpais a').attr("href","https://lector.kioskoymas.com/epaper/viewer.aspx?noredirect=true&cid=2317" );
+                	       		$('#botonera_revistas .elpais a').attr("href","https://redirector.kioskoymas.com/portada/lector/2317" ).attr('target','_blank');
+	        			if(typeof isMobileVersion != 'undefined' && isMobileVersion) {
+	        				$('li.li_prod_mer.elpais a').attr("href", "https://lector.kioskoymas.com?cid=2317").attr('target','_blank');
+	        			}
+
+			   }
+			}
+
+                // MEDTV
+	        	if (item.Bodega == 'MedTV') {
+				ticketMedTv = item.Ticket;
+				if ( ! item.Usado  ) {
+	        			if(typeof isMobileVersion != 'undefined' && isMobileVersion) {
+	        				$('li.li_prod_mer.medtv a').attr("onclick", "if(ticketMedTv){$('#menu').trigger('close');$('#modal_mer_medtv').modal('show');return false;};");
+	        			}
+					$('#botonera_revistas .medtv a').attr("onclick", "if(ticketMedTv){$('#modal_mer_medtv').modal('show');return false;};");
+            			        if (!alreadyModal) {	
+            					$('#modal_mer_medtv').modal('show');
+						alreadyModal=true;
+					}
+	        	     } else {
+				 $('#botonera_revistas .medtv a').attr("href", "https://www.medici.tv/es/").attr('target','_blank');
+                                 if(typeof isMobileVersion != 'undefined' && isMobileVersion) {
+	                              $('li.li_prod_mer.medtv a').attr("href", "https://www.medici.tv/es/").attr('target','_blank');
+                                 }
+
+				
+				}
+	        	}
+		   });
+			if (ticketMedTv==null) {
+    				if(typeof isMobileVersion != 'undefined' && isMobileVersion) {
+    					$('li.li_prod_mer.medtv a').attr("onclick", "$('#menu').trigger('close');$('#modal_mer_medtv_sus').modal('show');return false;");
+				}
+				$('#botonera_revistas .medtv a').attr("onclick", "$('#modal_mer_medtv_sus').modal('show');");	
+			}
+			if (ticketElPais==null) {
+    				if(typeof isMobileVersion != 'undefined' && isMobileVersion) {
+    					$('li.li_prod_mer.elpais a').attr("onclick", "$('#menu').trigger('close');$('#modal_mer_pais_sus').modal('show');");
+				}
+				$('#botonera_revistas .elpais a').attr("onclick", "$('#modal_mer_pais_sus').modal('show');");	
+			}
+		//}
+
+		crossStorage('set','userId',user_id);
+		crossStorage('set',"user_id",user_id) ;
+        var nombre_app_f = userPram.user.nombres;
+        var apellido_app_f = userPram.user.apellidoPaterno;
+        
+		loggedInUser = userPram.user;
+
+		usuarioLogueado(nombre_app_f,apellido_app_f);
+		app_disabled = false 
+		desbloquearPagina(); 
+
+		
+		if (typeof userPram.Renovaciones != 'undefined' && userPram.Renovaciones.length>0) {
+
+		    var listRenov = userPram.Renovaciones;
+		    var DateSiteRenov; 
+		    var DomainSite = window.location.hostname;
+
+		    for(var i=0;i<listRenov.length;i++){
+		        /*console.log("RE-NEW:" + listRenov[i].Publicacion);*/
+		        
+		        if (listRenov[i].Publicacion == "WM" && (DomainSite.indexOf( "mercurio")>0)) {
+		        	DateSiteRenov = listRenov[i].FechaFinValidez;
+		        }
+
+		        if (listRenov[i].Publicacion == "WS" && DomainSite == "digital.lasegunda.com") {
+		        	DateSiteRenov = listRenov[i].FechaFinValidez;
+		        }
+		    }
+	            if (typeof DateSiteRenov == 'undefined') return;		
+			console.log("Hay que renovar");
+
+			console.log("CHECK | RENEW ");
+
+			console.log("ORIGINAL DATE : " + DateSiteRenov);
+			fecha = DateSiteRenov.split("-");
+			expirationDate = new Date(fecha[0],fecha[1]-1,fecha[2]);
+			now = new Date();
+			warningDate = new Date(now.getTime()+NumDaysToFinish*24*3600*1000);
+			warning60Date = new Date(now.getTime()+60*24*3600*1000);
+                        if (expirationDate<warning60Date && expirationDate>=warningDate) {
+                                // check cookie
+                                if (readCookie("earlyRenewal")==null) {
+                                        if (!TempRolMer && !TempRolEmpresa) {
+                                                $('.show_modal_renew').show();
+                                                createCookie("earlyRenewal","2m",1);
+                                        }
+                                }
+
+                        }
+			if (expirationDate<warningDate ) {
+				if (!TempRolMer && !TempRolEmpresa) {
+					$('.show_modal_renew').show();
+				}
+			}
+		}
+	});
+	}
+  }});
+}
+function checkSecurity () {
+	if (readCookie("socialReferrer")) return;
+        if (!pramEncodedData) {
+                        app_disabled = true;
+                        console.log ("voy  a bloquearPagina, no hay user_id");
+                        bloquearPagina();
+
+        }
+}
+function checkSecurityOld (data) { 
+	console.log("en checkSecurity");
+	console.log("paywall config ");
+	console.log(paywall_config);
+	if (readCookie("appToken")) return;
+	var suscriptor = false 
+	if (paywall_config != false) {
+		console.log ("user_id");
+		console.log (user_id);
+		if (!user_id ) {
+			var url = document.location.href
+			//window.open ('https://pram.elmercurio.com/mobile/Login.aspx?SSOTargetUrl='+ "http://"+hostPublicacion +'/pram.html&ApplicationName=BLOGSMER',"mywindow","menubar=1,resizable=1,width=400,height=470")
+			//window.location = 'http://pram.elmercurio.com/Login.aspx?SSOTargetUrl='+ escape(document.URL) +'&ApplicationName=SEGCOM';
+			//window.location='http://suscripcionagil.elmercurio.com/segcom/paso1.aspx?idpromocion=2&login=1';
+			app_disabled = true
+			console.log ("voy  a bloquearPagina, no hay user_id");
+			bloquearPagina();
+
+			//abreLogin()
+
+		} else { 
+			console.log("paywall config:");
+			console.log(paywall_config);
+			if (paywall_config.type=="pram") {
+
+				suscriptor = true;
+
+			} else { 
+				var role=null;
+				
+				for (var i = 0; i < array_roles.length; i++) { 
+					for (var j = 0; j < paywall_config.roles.length; j++) { 
+						//console.log(array_roles[i]);
+						//console.log(paywall_config.roles[j]);
+						if (array_roles[i]==paywall_config.roles[j]) {
+							suscriptor = true ;
+							role = array_roles[i];
+							break;
+						}
+					} ;
+					if (suscriptor) { break; }
+				} 
+				console.log ("suscriptor:"+suscriptor);
+			}
+			console.log("data:"+data);
+			if (role) {
+				//save using crossStorage
+				crossStorage('set','userId',user_id);
+	
+			}
+			//if (!suscriptor && data >= 1) { 
+			if (!suscriptor ) { 
+				//location="http://www.mercuriosuscripciones.cl";
+				//fin links 
+				app_disabled = true 
+				console.log ("bloquear porque no es suscriptor");
+				bloquearPagina(); 
+			} else { 
+				app_disabled = false 
+				desbloquearPagina(); 
+			}
+
+		} 
+	} 
+}
+
+
+// C is for Cookie
+
+function crossStorage(type,name,val) { 
+	if (typeof window.localStorage == 'undefined') { // si localStorage no es soportado 
+		if (type == 'set') { 
+			createCookie(name,val,'364'); 
+		} 
+		else if (type == 'read') { 
+			return readCookie(name); 
+		} 
+		else if (type == 'remove') { 
+			eraseCookie(name); 
+		} 
+	} 
+	else { // HTML5 
+		if (type == 'set') { 
+			localStorage.setItem(name,val); 
+		} 
+		else if (type == 'read') { 
+			return localStorage.getItem(name); 
+		} 
+		else if (type == 'remove') { 
+			localStorage.removeItem(name); 
+		} 
+	}
+	
+	}
+
+function incrementPageViewCounter() {
+        checkSecurity();
+}
+function incrementPageViewCounterOld() {
+
+	//var maxDailyPages = 5;
+
+	//var maxMonthlyPages = 1000;
+
+	var noMoreDailyFreePages = false;
+	//console.log (paywall_config);
+
+	if (paywall_config!=false) {
+
+		maxDailyPages = paywall_config.freePagesDay;
+
+		maxMonthlyPages = paywall_config.freePagesMonth;
+
+	} else {
+		maxDailyPages = 4;
+
+		maxMonthlyPages = 10;
+
+	}
+	//console.log (maxDailyPages);
+
+//	if(data = localStorage.getItem("pageViewCounter-"+fechaPublicacion)) {
+
+	if(data = crossStorage('read','pageViewCounter-'+fechaPublicacion)) {
+
+		//localStorage.setItem("pageViewCounter-"+fechaPublicacion, parseInt(data) + 1)
+		if (dataDetail = crossStorage('read','pageViewCounterDetail-'+fechaPublicacion)) {
+			if (dataDetail.indexOf(currentPage.id)>=0) {
+				//nada, ya estaba contabilizado el pageview	
+			} else {
+				crossStorage('set','pageViewCounterDetail-'+fechaPublicacion, dataDetail+","+currentPage.id)
+				crossStorage('set','pageViewCounter-'+fechaPublicacion, parseInt(data) + 1)
+				console.log ("fecha publicacion:"+fechaPublicacion);
+				console.log(data);
+
+			}
+		}
+
+			
+
+		if (parseInt(data)>maxDailyPages) {
+
+			noMoreDailyFreePages=true;
+			//console.log ("supero pageviews diarios");
+			window.setTimeout(function() {checkSecurity(data);}, 5000);
+
+		} else {
+
+                        		app_disabled = false;
+
+                        		desbloquearPagina();
+
+		}
+
+	} else {
+
+		crossStorage('set','pageViewCounterDetail-'+fechaPublicacion, currentPage.id)
+		crossStorage('set','pageViewCounter-'+fechaPublicacion, 1)
+
+	}
+	var pv_month 
+	if(data = crossStorage('read','pageViewCounter-'+mesPublicacion)) {
+		pv_month=parseInt(data)
+	} else {
+		pv_month = 1;
+	} 
+	if (user_id) {
+		JSONP('https://apps.emol.com/pram/counter.php', {'site': PRAM_SITE, 'id': user_id}, function(data) {
+					console.log('counter.php');
+					console.log(data);
+					// obtengo pages y lo asigno a pv_month
+					pv_month=data;
+					//maxMonthlyPages=0;
+					if (noMoreDailyFreePages == false) {
+                        			if (pv_month>maxMonthlyPages) {
+                                			checkSecurity(data)
+                        			} else {
+                                			app_disabled = false;
+                                			desbloquearPagina();
+                        			}
+                			}
+                      })
+
+	} else {
+		 crossStorage('set','pageViewCounter-'+mesPublicacion, pv_month + 1)
+	}
+
+}
+
+
+
+function updatePramStatus() {
+
+	user_id=crossStorage('read',"user_id"); 
+	var rolesData; 
+	var roles;
+    
+	if (rolesData = crossStorage('read',"roles")) { 
+		 roles = eval('(' + rolesData + ')') 
+		 roles = eval('(' + rolesData + ')') 
+		 array_roles = roles.Roles 
+	}
+
+//	JSONP('https://pram.elmercurio.com/API/User/Status', {'ApplicationName': 'CLUBWP'}, function(res) {
+//	JSONP('https://pram.elmercurio.com/API/User/Status', {'ApplicationName': 'MERCL','jwt':'1'}, function(res) {
+//	console.log("JWT");
+//	console.log (res);});
+	JSONP('https://pram.elmercurio.com/API/User/Status', {'ApplicationName': PRAM_SITE}, function(res) {
+		
+        console.log("datos de pram");
+        console.log(res);
+		if(res && res.encryptedData) {
+
+			JSONP('https://digital.elmercurio.com/Bookmarks', {'message': res.encryptedData, 'action': 'decrypt'}, function(data) {
+				console.log(data);
+				if (data.indexOf("AccesoAnonimo")>0) {
+					if (tipoPagina == "full") {
+				               incrementPageViewCounter();
+				        }
+					return ;
+				}
+				var user = eval('(' + data + ')') ;
+				user_id = user.Name ;
+                
+				crossStorage('set',"user_id",user_id) ;
+				JSONP('https://pram.elmercurio.com/API/User/Roles', {'ApplicationName': PRAM_SITE}, function(res2) { 
+					JSONP('https://apps.emol.com/bt/GetPramRoles.php', {'data': res2.encryptedData, 'timing': 0}, function(data) {
+						
+						roles = eval('(' + data + ')');
+						console.log (roles);
+						crossStorage('set',"roles",data);
+						array_roles = roles.Roles;
+
+					});
+					
+                    JSONP('https://pram.elmercurio.com/API/User/Get', {'ApplicationName': 'CLUBWP'}, function(res3) {
+                    if (! (typeof res3.encryptedData === 'undefined' )) { 
+			pramEncodedData = res3.encryptedData;
+			JSONP('https://apps.emol.com/reader/disqus.php', {'data': res3.encryptedData, 'timing': 0}, function(dataDisqus) {
+							disqus_remote_auth=dataDisqus.disqus_remote_auth;
+							console.log ("disqus");
+                            console.log(dataDisqus);
+				loggedInUser = dataDisqus;
+			    var nombre_app = dataDisqus.name;
+                            var cortar_nom = nombre_app.split(' ');
+
+                            var nombre_app_f = cortar_nom[0];
+                            var apellido_app_f = cortar_nom[1];
+
+			    usuarioLogueado(nombre_app_f,apellido_app_f);
+								if (tipoPagina == "full") {
+						                        incrementPageViewCounter()
+						                }
+						})
+			}
+                                        });
+
+				});
+
+			});
+
+		} else {
+
+			if(res && res.IsAuthenticated  && res.AuthenticationType!="AccesoAnonimo") {
+
+				user_id = res.Name;
+				crossStorage('set',"user_id",user_id) ;
+                		//localStorage.setItem("user_id", res.Name);
+
+				JSONP('https://pram.elmercurio.com/API/User/Roles', {'ApplicationName': PRAM_SITE}, function(roles) {
+					console.log(roles);
+					crossStorage('set',"roles",JSON.stringify(roles));
+					array_roles = roles.Roles;
+
+
+				})	
+                    $.getJSON('https://pram.elmercurio.com/API/User/Get?ApplicationName='+PRAM_SITE+'&callback=?', function(res3) {
+			console.log("User Get");
+			console.log(res3);
+			loggedInUser = res3;
+			    usuarioLogueado(res3.nombres,res3.apellidoPaterno);
+								if (tipoPagina == "full") {
+						                        incrementPageViewCounter()
+						                }
+	            }).fail(function() {alert('error en User/Get');});
+                    JSONP('https://pram.elmercurio.com/API/User/Get', {'ApplicationName': PRAM_SITE, 'jwt':'1'}, function(res4) {
+                    if (! (typeof res4.encryptedData === 'undefined' )) { 
+			pramEncodedData = res4.encryptedData;
+			console.log(res4);
+			//alert("pramEncodedData:"+pramEncodedData);
+		    }})
+
+			} else {
+
+				//console.log ("usuario no esta logueado");
+				usuarioNoLogueado();	
+								if (tipoPagina == "full"){
+								//console.log ("incrementando counter") 
+						                        incrementPageViewCounter()
+						                }
+
+			}
+
+		}
+
+	})
+
+}
+
+// CONFIG paginas a contar
+//var pattern = /http:\/\/(.*?)\/Pages\/NewsDetail.aspx(.*)dtB=(\d+)-(\d+)-(\d+)/
+//var re=new RegExp(pattern)
+
+//var m =re.exec(document.URL)
+//if (m==null) { 
+
+//        } else {
+ 
+//	var tipoPagina = "full" 
+//	var fechaPublicacion = m[5]+"-"+m[4]+"-"+m[3] 
+//	var mesPublicacion = m[5]+"-"+m[4] 
+//	var hostPublicacion = m[1] 
+//
+//}
+// END CONFIG
+var user_id 		= ""
+
+  , array_roles 	= []
+
+
+  , app_disabled 	= false
+
+function bloquearPaginaNew() {
+
+    //checkSecurity();
+     console.log("MODAL OK");
+     Cookies.set("LastUrlBeforeAuth",window.location.href,0.0625 );
+     location = "https://suscripciondigital.elmercurio.com/mercl/login.aspx"     ;
+
+}
+
+function bloquearPagina() {
+
+    
+     console.log("MODAL OK");
+     Cookies.set("LastUrlBeforeAuth",window.location.href );
+     window.setInterval(function() {$('.page').empty();
+     $('.articles').empty();$('.page_pdf_content').empty();$('.fullImg').attr("src","");$('.fullImage').attr("src","");$('.ng-scope').empty();},1000);
+     $('#modal_limit_articulos').modal({
+        backdrop: 'static',
+        keyboard: false
+      })
+     _paq.push(['trackEvent', 'Paywall', 'Modal-Login', 'Abrio-Modal-Login']);
+	addPixelNotSubscriber();
+}
+
+function desbloquearPagina() {
+    //console.log("DESACTIVAR MODAL CUANDO ESTAS INICIAS SESIÓN");
+    $('#modal_limit_articulos').modal("hide");
+     Cookies.remove("LastUrlBeforeAuth");
+	addPixelSubscriber();
+}
+
+function abreLogin() {
+
+
+}
+//		var securityJson = '{"type":"ppram","freePagesDay":6, "freePagesMonth":4000, "roles":["RolLaSegunda","RolLaSegundaCortesia","SE-SEGS","WS-WS00-Z0006","WS-WS00"]}';
+//		paywall_config = jQuery.parseJSON(securityJson)
+		if (!loaded) {
+			//updatePramStatus(); 
+			loaded = true;
+		}
+
+function usuarioLogueado(nombre_app_f,apellido_app_f) {
+	//userLogin(nombre_app_f+' '+apellido_app_f);
+	//console.log( "NOMBRE : " + nombre_app_f );
+	//console.log( "APELLIDO : " + apellido_app_f );
+
+	userLogin();
+
+	//console.log("CON LOGIN");
+}
+
+function usuarioNoLogueado() {
+
+	//console.log("SIN LOGIN");
+
+	userNoLogin();
+
+	crossStorage('remove',"user_id");user_id="";
+	array_roles=[];
+}
+function addPixelToken(token) {
+	var imgtag = document.createElement('img');
+        imgtag.height='1';
+        imgtag.width='1';
+        imgtag.style='border-style:none;';
+        imgtag.alt='';
+        imgtag.src='https://apps.emol.com/token/'+token+'.png';
+	var imgtag2 = document.createElement('img');
+        imgtag2.height='1';
+        imgtag2.width='1';
+        imgtag2.style='border-style:none;';
+        imgtag2.alt='';
+        imgtag2.src='https://merreader.emol.cl/'+new Date().getFullYear()+'t-'+rtPram(token)+'.png';
+	url  = "https://merreader.emol.cl/Wm?t="+rtPram(token);
+	/*jQuery.ajax({
+        url: url,
+        dataType: "json",
+	xhrFields : {
+		withCredentials: true 
+	},
+        success: function(respuesta) { console.log (respuesta); }});*/
+}
+function addPixelNotSubscriber() {
+	var imgtag = document.createElement('img');
+        imgtag.height='1';
+        imgtag.width='1';
+        imgtag.style='border-style:none;';
+        imgtag.alt='';
+        imgtag.src='https://apps.emol.com/pix8.png';
+}
+function addPixelSubscriber() {
+	var imgtag = document.createElement('img');
+        imgtag.height='1';
+        imgtag.width='1';
+        imgtag.style='border-style:none;';
+        imgtag.alt='';
+        imgtag.src='https://apps.emol.com/pix9.png';
+
+}
+

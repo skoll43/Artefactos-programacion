@@ -5,4 +5,5 @@ while True:
         print("su cifra tiene", len(str(valor)), "digitos")
     except ValueError:
         print("debe ingresar digitos")
-    
+        continue
+        

@@ -1,0 +1,37 @@
+var loggedInUser;
+function userLogin () {
+    $.getJSON('https://digital.elmercurio.com/Authenticate?id='+pramEncodedData+'&action=getUser', function(userPramData) {
+        loggedInUser = true;
+  var nombre_app = loggedInUser.nombres;
+  var cortar_nom;
+  if (nombre_app) {
+  	cortar_nom = nombre_app.split(' ');
+  	if (cortar_nom.length < 2) {
+		cortar_nom[0] = nombre_app;
+		cortar_nom[1] = " ";
+ 	 }
+  } else {
+ 	cortar_nom = loggedInUser.username.split('@');
+	cortar_nom[1] = " ";	
+  }
+  var nombre_01 = cortar_nom[0].toLowerCase();
+  var nombre_02 = cortar_nom[1].toLowerCase();
+  
+  var apellido_pat = loggedInUser.apellidoPaterno.toLowerCase();
+  var apellido_mat = loggedInUser.apellidoMaterno.toLowerCase();
+  var apellido_mat_first = apellido_mat.charAt(0)+'.';
+
+  document.getElementById("logueado").style.display = "block";
+  //document.getElementById("logueado").innerHTML='<div class="masthead"><div class="diario_impreso"><div class="diario_impreso_txt"><a href="javascript:void(0);" data-toggle="modal" role="dialog" data-target=".bs-example-modal-sm">Ediciones Anteriores</a></div></div><div class="club_lectores"><a target="_top" href="http://www.clubdelectores.cl/">Club de Lectores</a></div><div class="registro txt_capitLog">'+nombre_01+' '+apellido_pat+' '+apellido_mat_first+'</div><div class="logout"><a id="bt_perfil" href="https://suscripciones.elmercurio.com/Private/MiSuscripcion.aspx" target="_blank">Mi Perfil</a><a id="pramIngresar" href="https://pram.elmercurio.com/Logout.aspx?ApplicationName=CLUBWP&l=yes&SSOTargetUrl=http%3A%2F%2Fdigital.elmercurio.com%2F">Salir</a></div></div>';
+  document.getElementById("logueado").innerHTML='<div class="logueado_int"><div class="login_config cont_menu_mer_config"> <button id="log_config" class="mdl-button mdl-js-button mdl-button--icon" data-upgraded=",MaterialButton"> <i class="fa fa-cog" aria-hidden="true"></i> </button> <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="log_config"> <span class="perfil_mer"> <a href="https://suscripciones.elmercurio.com"><li class="mdl-menu__item"><i class="fa fa-user" aria-hidden="true"></i> Mi Perfil</li></a> </span> <span class="alert_mer"> <li class="mdl-menu__item"><i class="fa fa-bell-o" aria-hidden="true"></i>Alertas</li> </span> <span class="bookmarks_mer"> <li class="mdl-menu__item"><i class="fa fa-bookmark" aria-hidden="true"></i> Mis Favoritos</li> </span> <span class="loginfooPram"> <a href="javascript:void(0);" onclick="RemoveAppToken();"> <li class="mdl-menu__item"><i class="fa fa-sign-out" aria-hidden="true"></i>Salir</li> </a> </span> </ul> </div> <div class="login_name">'+nombre_01+' '+apellido_pat+' '+apellido_mat_first+'</div> <a href="javascript:void(0)" onclick="OpenContact();" style="float:right;margin-top: 12px;margin-right:22px;color:#000;"><span class="cont_icon_suscriptor"><i class="fa fa-phone"></i></span> <span class="cont_txt_aten_sus">Atención a suscriptores</span></a></div>';
+  document.getElementById("nologueado").style.display = "none";
+
+  // BUSCADOR
+  $('#buscador_mer_app').html('<span class="cont_bt_sections bt_buscar_txt"><i class="fa fa-search" aria-hidden="true"></i><span class="buscar_txt_header">Buscar</span></span>');
+});
+
+}
+
+function userNoLogin () {
+  console.log("NO-USUARIO");
+}

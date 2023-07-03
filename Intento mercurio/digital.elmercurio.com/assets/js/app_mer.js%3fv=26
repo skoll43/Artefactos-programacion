@@ -1,0 +1,680 @@
+// DETECT OFFLINE MODE
+
+//var offlineMode = false;
+var tipoPagina = "free";
+
+// NO LOGIN 
+
+function userNoLogin() {
+}
+
+// TOUCH EVENTS 
+    var xDown = null;                                                        
+    var yDown = null;                                                        
+    var pinchZoommed = false;
+    //var counthandle = 0;
+
+    function handleTouchStart(evt) {
+            //alert("START - INICIO");
+            xDown = evt.touches[0].clientX;
+            yDown = evt.touches[0].clientY;
+    };                                                
+
+    function handleTouchMove(evt) {
+
+        /* counthandle = 0;
+        counthandle += 1;
+
+        alert("COUNT : " + counthandle);
+
+        if (counthandle == 1) {  */
+
+            //alert("MOVE - INICIO");
+
+            if ( ! xDown || ! yDown ) {
+                return;
+            }
+
+            var xUp = evt.touches[0].clientX;                                    
+            var yUp = evt.touches[0].clientY;
+
+            var xDiff = xDown - xUp;
+            var yDiff = yDown - yUp;
+
+            if (Math.abs(xDiff) > Math.abs(yDiff)) {
+                if (xDiff > 0 ) {
+
+                    /* left swipe */
+                    
+                    /*if (evt.scale == 1.0) {
+                        $('.royalSlider').royalSlider('next');   
+                    }*/
+
+                    //if (! pinchZoommed) {
+                        if (evt.touches.length == 1) {
+                            //$('.royalSlider').royalSlider('next');
+                            
+                            if (viewer.viewport.getZoom() == 1) { 
+                                if ($(window).scrollTop() + 55 > $('.seadragon').height()) {
+                                    SD_NEXT_PAGE();
+                                }
+                                
+                            }
+                            
+                            //MerBackTop();
+                        }
+                    //}
+
+                } else {
+
+                    /* right swipe */
+                   
+                    //alert("SWIPE RIGHT");
+
+                    /*if (evt.scale == 1.0) {
+                        $('.royalSlider').royalSlider('prev');
+                    }*/
+
+                    //alert( "SCALE RIGHT : " + evt.scale);
+                    //if (! pinchZoommed) {
+                        if (evt.touches.length == 1) {
+                            //$('.royalSlider').royalSlider('prev');
+                            if (viewer.viewport.getZoom() == 1) { 
+                                if ($(window).scrollTop() + 55 > $('.seadragon').height()) {
+                                    SD_PREV_PAGE();
+                                }
+                            }
+                            //MerBackTop();
+                        }
+
+                    //}
+                    
+                }
+
+            } else {
+                if ( yDiff > 0 ) {
+                    /* up swipe */ 
+                    console.log("SWIPE UP");
+                } else { 
+                    /* down swipe */
+                    console.log("SWIPE DOWN");
+                }                                                                 
+            }
+            /* reset values */
+            xDown = null;
+            yDown = null;   
+
+        // }                                     
+    };
+    
+    function handleTouchEnd(evt) {
+
+            if (evt.scale > 1) {
+                pinchZoommed = true;
+                //MerNavDesactive();
+            } else {
+                pinchZoommed = false;
+                //MerNavActive();
+            }
+
+    };
+// GALERIA 
+var initPhotoSwipeFromDOM = function (gallerySelector) {
+
+    var parseThumbnailElements = function (el) {
+        var thumbElements = el.childNodes,
+                numNodes = thumbElements.length,
+                items = [],
+                el,
+                childElements,
+                thumbnailEl,
+                size,
+                item;
+
+        for (var i = 0; i < numNodes; i++) {
+            el = thumbElements[i];
+
+            // include only element nodes 
+            if (el.nodeType !== 1) {
+                continue;
+            }
+
+            childElements = el.children;
+
+            size = el.getAttribute('data-size').split('x');
+
+            // create slide object
+            item = {
+                src: el.getAttribute('href'),
+                w: parseInt(size[0], 10),
+                h: parseInt(size[1], 10),
+                author: el.getAttribute('data-author')
+            };
+
+            item.el = el; // save link to element for getThumbBoundsFn
+
+            if (childElements.length > 0) {
+                item.msrc = childElements[0].getAttribute('src'); // thumbnail url
+                if (childElements.length > 1) {
+                    item.title = childElements[1].innerHTML; // caption (contents of figure)
+                }
+            }
+
+
+            var mediumSrc = el.getAttribute('data-med');
+            if (mediumSrc) {
+                size = el.getAttribute('data-med-size').split('x');
+                // "medium-sized" image
+                item.m = {
+                    src: mediumSrc,
+                    w: parseInt(size[0], 10),
+                    h: parseInt(size[1], 10)
+                };
+            }
+            // original image
+            item.o = {
+                src: item.src,
+                w: item.w,
+                h: item.h
+            };
+
+            items.push(item);
+        }
+
+        return items;
+    };
+
+    // find nearest parent element
+    var closest = function closest(el, fn) {
+        return el && (fn(el) ? el : closest(el.parentNode, fn));
+    };
+
+    var onThumbnailsClick = function (e) {
+        e = e || window.event;
+        e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
+        var eTarget = e.target || e.srcElement;
+
+        var clickedListItem = closest(eTarget, function (el) {
+            return el.tagName === 'A';
+        });
+
+        if (!clickedListItem) {
+            return;
+        }
+
+        var clickedGallery = clickedListItem.parentNode;
+
+        var childNodes = clickedListItem.parentNode.childNodes,
+                numChildNodes = childNodes.length,
+                nodeIndex = 0,
+                index;
+
+        for (var i = 0; i < numChildNodes; i++) {
+            if (childNodes[i].nodeType !== 1) {
+                continue;
+            }
+
+            if (childNodes[i] === clickedListItem) {
+                index = nodeIndex;
+                break;
+            }
+            nodeIndex++;
+        }
+
+        if (index >= 0) {
+            openPhotoSwipe(index, clickedGallery);
+        }
+        return false;
+    };
+
+    var photoswipeParseHash = function () {
+        var hash = window.location.hash.substring(1),
+                params = {};
+
+        if (hash.length < 5) { // pid=1
+            return params;
+        }
+
+        var vars = hash.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            if (!vars[i]) {
+                continue;
+            }
+            var pair = vars[i].split('=');
+            if (pair.length < 2) {
+                continue;
+            }
+            params[pair[0]] = pair[1];
+        }
+
+        if (params.gid) {
+            params.gid = parseInt(params.gid, 10);
+        }
+
+        return params;
+    };
+
+    var openPhotoSwipe = function (index, galleryElement, disableAnimation, fromURL) {
+        var pswpElement = document.querySelectorAll('.pswp')[0],
+                gallery,
+                options,
+                items;
+
+        items = parseThumbnailElements(galleryElement);
+
+        // define options (if needed)
+        options = {
+
+            galleryUID: galleryElement.getAttribute('data-pswp-uid'),
+
+            getThumbBoundsFn: function (index) {
+                // See Options->getThumbBoundsFn section of docs for more info
+                var thumbnail = items[index].el.children[0],
+                        pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
+                        rect = thumbnail.getBoundingClientRect();
+
+                return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};
+            },
+
+            addCaptionHTMLFn: function (item, captionEl, isFake) {
+                if (!item.title) {
+                    captionEl.children[0].innerText = '';
+                    return false;
+                }
+                captionEl.children[0].innerHTML = item.title + '<br/><small>Foto: ' + item.author + '</small>';
+                return true;
+            }
+
+        };
+
+
+        if (fromURL) {
+            if (options.galleryPIDs) {
+                // parse real index when custom PIDs are used 
+                // http://photoswipe.com/documentation/faq.html#custom-pid-in-url
+                for (var j = 0; j < items.length; j++) {
+                    if (items[j].pid == index) {
+                        options.index = j;
+                        break;
+                    }
+                }
+            } else {
+                options.index = parseInt(index, 10) - 1;
+            }
+        } else {
+            options.index = parseInt(index, 10);
+        }
+
+        // exit if index not found
+        if (isNaN(options.index)) {
+            return;
+        }
+
+
+
+        var radios = document.getElementsByName('gallery-style');
+        for (var i = 0, length = radios.length; i < length; i++) {
+            if (radios[i].checked) {
+                if (radios[i].id == 'radio-all-controls') {
+
+                } else if (radios[i].id == 'radio-minimal-black') {
+                    options.mainClass = 'pswp--minimal--dark';
+                    options.barsSize = {top: 0, bottom: 0};
+                    options.captionEl = false;
+                    options.fullscreenEl = false;
+                    options.shareEl = false;
+                    options.bgOpacity = 0.85;
+                    options.tapToClose = true;
+                    options.tapToToggleControls = false;
+                }
+                break;
+            }
+        }
+
+        if (disableAnimation) {
+            options.showAnimationDuration = 0;
+        }
+
+        // Pass data to PhotoSwipe and initialize it
+        gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
+
+        // see: http://photoswipe.com/documentation/responsive-images.html
+        var realViewportWidth,
+                useLargeImages = false,
+                firstResize = true,
+                imageSrcWillChange;
+
+        gallery.listen('beforeResize', function () {
+
+            var dpiRatio = window.devicePixelRatio ? window.devicePixelRatio : 1;
+            dpiRatio = Math.min(dpiRatio, 2.5);
+            realViewportWidth = gallery.viewportSize.x * dpiRatio;
+
+
+            if (realViewportWidth >= 1200 || (!gallery.likelyTouchDevice && realViewportWidth > 800) || screen.width > 1200) {
+                if (!useLargeImages) {
+                    useLargeImages = true;
+                    imageSrcWillChange = true;
+                }
+
+            } else {
+                if (useLargeImages) {
+                    useLargeImages = false;
+                    imageSrcWillChange = true;
+                }
+            }
+
+            if (imageSrcWillChange && !firstResize) {
+                gallery.invalidateCurrItems();
+            }
+
+            if (firstResize) {
+                firstResize = false;
+            }
+
+            imageSrcWillChange = false;
+
+        });
+
+        gallery.listen('gettingData', function (index, item) {
+            if (useLargeImages) {
+                item.src = item.o.src;
+                item.w = item.o.w;
+                item.h = item.o.h;
+            } else {
+                item.src = item.m.src;
+                item.w = item.m.w;
+                item.h = item.m.h;
+            }
+        });
+
+        gallery.init();
+
+        console.log("SE INICIO LA GALERIA");
+
+       /* var hammer = document.getElementById("articleData");
+        hammer.get('swipe').set({enable: false}); */
+
+        console.log("DESACTIVO HAMMER");
+
+         $(".royalSlider").royalSlider({
+             sliderDrag: false,
+             sliderTouch: false
+         });
+         
+         console.log("DESHABILITO ROYAL SLIDER");
+
+    };
+
+    // select all gallery elements
+    var galleryElements = document.querySelectorAll(gallerySelector);
+    for (var i = 0, l = galleryElements.length; i < l; i++) {
+        galleryElements[i].setAttribute('data-pswp-uid', i + 1);
+        galleryElements[i].onclick = onThumbnailsClick;
+    }
+
+    // Parse URL and open gallery if it contains #&pid=3&gid=1
+    var hashData = photoswipeParseHash();
+    if (hashData.pid && hashData.gid) {
+        openPhotoSwipe(hashData.pid, galleryElements[ hashData.gid - 1 ], true, true);
+    }
+};
+
+// FORMATEAR FECHA 
+
+function encode_utf8(s) {
+  return unescape(encodeURIComponent(s));
+}
+
+function decode_utf8(s) {
+  return decodeURIComponent(escape(s));
+}
+
+function DateBooksMer(DateMer) {
+    var d = new Date(DateMer);
+    var day = d.getDate();
+    var month = d.getMonth() + 1;
+    var year = d.getFullYear();
+    if (day < 10) {
+        day = "0" + day;
+    }
+    if (month < 10) {
+        month = "0" + month;
+    }
+    var date = day + "-" + month + "-" + year;
+
+    return date;
+};
+
+// VIEW BOOKMARKS
+
+function viewBookMarks() { 
+    $.ajax({
+        url: 'https://digital.elmercurio.com/Bookmarks',
+        dataType: "json",
+        data: {
+            action: "getAll",
+            pramEncodedData: pramEncodedData,
+            format: "json"
+        },
+        method: "GET",
+        cache: false
+    }).done(function (response) {
+        
+        books_items_mer = '';
+
+        response.forEach(function (bookmark) {
+            books_items_mer  +=  '<div class="books_mer_item_cont">';
+            books_items_mer  +=  '<a href="'+bookmark.url+'">';
+            books_items_mer  +=  '   <div class="books_mer_item">';
+            books_items_mer  +=  '       <div class="books_mer_item_img">';
+            books_items_mer  +=  '          <img src="/'+bookmark.image+'">';
+            books_items_mer  +=  '       </div>';
+            books_items_mer  +=  '       <h1>'+bookmark.title+'</h1>';
+            books_items_mer  +=  '       <p>'+bookmark.headDeck+'</p>';
+            books_items_mer  +=  '       <span class="books_mer_datepub"><span class="dot_books_blue"></span> Publicación&nbsp;<span>·</span>&nbsp;'+DateBooksMer(bookmark.edition)+'</span>';
+            books_items_mer  +=  '</a>';
+            books_items_mer  +=  '       <div class="books_mer_sec_pag"><span class="books_mer_sec">'+bookmark.page+'</span><span class="books_mer_sec_txt">Guardado desde · <strong>'+bookmark.section+'</strong></span><span class="books_mer_del" onclick="removeBookMarks('+bookmark.id+')" data-idBook="'+bookmark.id+'"><i class="fa fa-trash" aria-hidden="true"></i></span></div>';
+            books_items_mer  +=  '   </div>';
+            books_items_mer  +=  '</div>';
+
+            //html = html+"<h1>"+"<a href='"+bookmark.url+"'>"+bookmark.title+"</a></h1>";
+            //html = html+""+"<a href='"+bookmark.url+"'>"+bookmark.title+"</a>";
+            //html = html+bookmark.title+" ";
+            //console.log(html);
+
+        });
+
+        $('#list_bookmarks_mer').html(books_items_mer);
+        //console.log("ITEMS BOOKMARKS : " + response);
+
+    });
+}
+
+// DELETE BOOKMARKS 
+
+function removeBookMarks(idBook) {
+    
+    if (pramEncodedData) {
+        
+        $(document).unbind('ajaxStart');
+        $(document).unbind('ajaxComplete');
+
+        $.ajax({
+            url: 'https://digital.elmercurio.com/Bookmarks',
+            dataType: "json",
+            encoding:"UTF-8",
+            data: {
+                action: "remove",
+                bookmarkId: idBook,
+                pramEncodedData: pramEncodedData,
+                format: "json"
+            },
+            method: "GET",
+            cache: false
+        }).done(function (response) {
+            viewBookMarks();
+            console.log("REMOVE-OK");
+            _paq.push(['trackEvent', 'Funcionalidades', 'Favoritos', 'Quitar']);
+        }); 
+    } else {
+        block_toolsMer();
+    }
+
+}
+
+// GET NOTIFICATIONS
+
+function getNotificationsMer() { 
+    $.ajax({
+        url: 'https://digital.elmercurio.com/Notifications',
+        dataType: "json",
+        data: {
+            action: "getNotifications",
+            pramEncodedData: pramEncodedData,
+            format: "json"
+        },
+        method: "GET",
+        cache: false
+    }).done(function (response) {
+        
+        notify_items_mer = '';
+
+        response.forEach(function (getNotify) {
+
+            if (getNotify.opened != true) {
+                notify_items_mer  +=  '<div class="books_mer_item_cont noleido">';
+                notify_items_mer  +=  '<a href="'+getNotify.clickAction+'" onclick="readNotifyMer('+getNotify.id+')">';
+            } else {
+                notify_items_mer  +=  '<div class="books_mer_item_cont">';
+                notify_items_mer  +=  '<a href="'+getNotify.clickAction+'">';    
+            }
+            //notify_items_mer  +=  '   <a href="'+getNotify.clickAction+'" onclick="readNotifyMer('+getNotify.id+')">';
+            notify_items_mer  +=  '   <div class="books_mer_item">';
+            notify_items_mer  +=  '       <div class="books_mer_item_icon"><i class="fa fa-bell" aria-hidden="true"></i></div>';
+            notify_items_mer  +=  '       <h1>'+getNotify.title+'</h1>';
+            notify_items_mer  +=  '       <span class="books_mer_datepub"><span class="dot_books_blue"></span> Enviado&nbsp;<span>·</span>&nbsp;'+DateBooksMer(getNotify.notificationTime)+'</span>';
+            notify_items_mer  +=  '   </div>';
+            notify_items_mer  +=  '   </a>';
+
+            notify_items_mer  +=  '</div>';
+
+        });
+
+        $('#list_notificaciones_mer').html(notify_items_mer);
+
+    });
+}
+
+// MARK READ NOTIFICATIONS
+
+function readNotifyMer(idNofifyRead) { 
+
+$.ajax({
+    url: 'https://digital.elmercurio.com/Notifications',
+    dataType: "json",
+    encoding:"UTF-8",
+    data: {
+        action: "readNotification",
+        notificationId: idNofifyRead,
+        pramEncodedData: pramEncodedData,
+        format: "json"
+    },
+    method: "GET",
+    cache: false
+}).done(function (response) {
+    getNotificationsMer();
+    console.log("READ-OK");
+    _paq.push(['trackEvent', 'Funcionalidades', 'Favoritos', 'Listando-Favoritos']);
+}); 
+
+}
+
+// CHECK NOTIFY MER
+
+function checkNotifyMer() {
+
+  $.ajax({
+        url: 'https://digital.elmercurio.com/Notifications',
+        dataType: "json",
+        data: {
+            action: "getPreferences",
+            pramEncodedData: pramEncodedData,
+            format: "json"
+        },
+        method: "GET",
+        cache: false
+    }).done(function (response) {
+
+        console.log("STATUS EMOL : " + response.emol);
+        console.log("STATUS CLUB: " + response.club);
+        console.log("STATUS ENCUENTROS: " + response.encuentros);
+        console.log("STATUS ADELANTOS: " + response.adelantos);
+
+        if (pramEncodedData) {
+response.items.forEach( function(item) {
+    $('.cont_alert_full #'+item.id).val('1').attr('checked','checked');
+});
+           
+
+           // console.log("CHECK NOTIFY");
+
+        }
+
+        //JSON.stringify(response); 
+
+    });
+
+    console.log("Status : Notifications");
+
+}
+//window.setTimeout(checkNotifyMer(), 4000);
+//checkNotifyMer();
+
+function alertas_digital_mercurio() {
+
+     $.ajax({
+        url: 'https://digital.elmercurio.com/Notifications?',
+        dataType: "json",
+        data: {
+            action: "setPreferences",
+            mer_resumen:  $('#mer_resumen').prop('checked'),
+            mer_libros:  $('#mer_libros').prop('checked'),
+            mer_cartas:  $('#mer_cartas').prop('checked'),
+            mer_editoriales:  $('#mer_editoriales').prop('checked'),
+            mer_columnistas:  $('#mer_columnistas').prop('checked'),
+            mer_sociales:  $('#mer_sociales').prop('checked'),
+            mer_defunciones: $('#mer_defunciones').prop('checked'),
+            mer_cierre: $('#mer_cierre').prop('checked'),
+            emol_um: $('#emol_um').prop('checked'),
+            club_panoramas: $('#club_panoramas').prop('checked'),
+            club_descuentos: $('#club_descuentos').prop('checked'),
+            club_viajes: $('#club_viajes').prop('checked'),
+            club_tienda: $('#club_tienda').prop('checked'),
+            club_encuentros: $('#club_encuentros').prop('checked'),
+	        seg_cierre: $('#seg_cierre').prop('checked'),
+            seg_topsecret: $('#seg_topsecret').prop('checked'),
+            seg_ftw: $('#seg_ftw').prop('checked'),
+            seg_nyt: $('#seg_nyt').prop('checked'),
+            seg_rsw: $('#seg_rsw').prop('checked'),
+            seg_conversa: $('#seg_conversa').prop('checked'),
+            seg_editorial: $('#seg_editorial').prop('checked'),
+            seg_politica: $('#seg_politica').prop('checked'),
+            seg_opinion: $('#seg_opinion').prop('checked'),
+
+            pramEncodedData: pramEncodedData,
+            email: loggedInUser.email,
+            format: "json"
+        },
+        method: "GET",
+        cache: true
+    }).done(function (response) {
+        console.log("LISTO");
+        $('.save_alert_ok').slideDown('slow').delay(2000).slideUp('slow');
+    });
+
+}
+
+
+

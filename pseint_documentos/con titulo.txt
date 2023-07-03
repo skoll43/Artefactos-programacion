@@ -1,0 +1,32 @@
+alumno, nombre y nota
+
+clase alumno
+
+	def 
+
+
+
+listaalumnos = alumno[entrada]
+  alumno = 0
+ por cada alumno en listaalumnos
+ sumar 1 alumno
+
+suma promedio de alumnos
+    
+
+nnota = +1 para cada nota
+resultado = nota1 + nota2 + nota3 / en nnota
+
+---calcular la nota de un alumno
+
+4 notas parciales 60%
+
+0.25 *nota1 
+0.20 *nota2
+0.20 *nota3
+0.35 *nota4
+
+suma
+
+examen 40%
+

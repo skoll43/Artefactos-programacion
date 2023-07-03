@@ -13,6 +13,7 @@ while True:
             suma = contador + contador2
             print("vocales en la palabra:", suma)
             break
+        
         else:
             print("Ingrese exactamente 10 letras")
             continue
