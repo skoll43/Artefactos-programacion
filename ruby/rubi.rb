@@ -29,3 +29,6 @@ PNGlitch.open('C:\Users\lukas\Downloads\im.png') do |p|
   p.output 'C:\Users\lukas\Downloads\im1.png'
 end
 (none|sub|up|average|paeth).
+
+
+#glitcher images
