@@ -1,3 +1,17 @@
+#Se debe crear el código para un horno que cocina “Pizzas Perfectas”.
+
+#El horno que está a temperatura ambiente (entre 5 y 18; Utilice Azar) debe calentarse a 200 grados, para ello tiene un dispositivo que aumenta la temperatura cada 1 segundo (azar entre 1 y 5).
+#Una vez alcanzada la temperatura la pizza debe mantenerse por 90 segundos en un rango de 200 ° +/- 5°.
+#El horno al no recibir calor se enfría entre 1 y 3 grados cada 1 segundos, por lo tanto, al bajar la temperatura del rango, se acciona el dispositivo que aumenta calor.
+#Una vez pasado el tiempo de cocción, el horno tiene un dispositivo de enfriamiento que enfría entre 1 y 5 grados cada segundo. Enfríe el horno hasta 60° para sacar la pizza.
+#Desarrolle un algoritmo en Python que realice el proceso cocción y muestre la temperatura durante todo el proceso cada 1 segundo.
+
+#temp normal 5-18°c  // objetivo 200°c // con energia aumenta 
+#funcionamiento en 195 - 205°c
+#enfriamiento sin energia entre (1 - 3°c)*1seg
+#modo enfriamiento (1-5°c)*1seg //Objetivo 60°c
+
+
 from random import randint as azar
 from time import sleep
 from os import system

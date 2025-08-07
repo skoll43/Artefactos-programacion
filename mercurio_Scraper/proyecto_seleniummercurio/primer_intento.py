@@ -54,7 +54,7 @@ while n != 4:
     pagina = open("output.txt","r",encoding="utf-8").read()         #Abre el archivo
     sleep(1)
     otrocosa = re.findall(r'data-src-retina=.*?jpg', pagina)
-    sleep(1)                                                       #regex arcano q no entiendo pero funciona
+    sleep(1)                                                       #regex 
     for mani in otrocosa:                                           #por cada regex encontrado
         mani = mani.strip('data-src-retina="')                      #le saca la parte que no funciona en wget
         image_url = mani                                            #transforma cada link en link para descargar

@@ -1,5 +1,27 @@
 from gpio import *
 from time import *
+'''
+		Funcionamiento por horarios:
+
+Madrugada (2:00 AM - 7:00 AM):
+
+Abre la puerta automáticamente
+Mantiene luces encendidas por 60 segundos
+Permite acceso libre
+Día (7:00 AM en adelante):
+
+Cierra la puerta
+Apaga las luces
+Modo seguridad activado
+		Monitoreo continuo:
+		Cada 5 segundos verifica:
+		Detección de movimiento
+		Niveles de sonido
+		Hora actual para control de acceso
+
+		Propósito del sistema:
+		Este código simula un sistema de seguridad doméstico o comercial
+'''
 
 #D2-3 SON LUCES
 def apagado():
