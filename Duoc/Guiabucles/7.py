@@ -1,3 +1,6 @@
+#7. Escribir un programa que muestre todas las potencias de un entero N que sean menores 
+# que un valor especificado como límite.  
+
 entero = int(input("Ingrese un entero: "))
 limite = int(input("Ingrese un limite para la potencia"))
 ele = 1 
