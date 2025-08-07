@@ -1,8 +1,0 @@
-Crear un programa que contenga plantillas de:router, switch, pc, quizas IOT
-
-modo configuracion inicial
-1. tenga plantilla basica: x lineas de texto
-2. muestre la configuracion en un bloque modificable
-3. 
-
-modo configuracion de modificacion
