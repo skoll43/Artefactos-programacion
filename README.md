@@ -7,10 +7,10 @@ Este repositorio contiene ejercicios, scripts y proyectos de programación en Py
 - `Duoc programacion/` — Ejercicios prácticos y guías de programación
 	- Incluye simulaciones de situaciones, como el control de semáforos, sistemas de seguridad y automatización de tareas cotidianas. También hay ejercicios donde se prueban ideas, se resuelven problemas y se automatizan cálculos, diseño para mejorar procesos y buscar soluciones prácticas.
 
-- `Config cisco/` — Configuraciones y guías de redes Cisco
+- `Config cisco/` — Configuraciones y guías de redes Cisco, VLSM, CCNA, CCST
 - `Coursera python IT/` — Ejercicios y tareas de cursos de Python
 - `Elmercurio_webScraper/` — Scripts de scraping y automatización web
-- `ruby/` — Scripts en Ruby
+- `ruby/` — Scripts en Ruby para glitchear imagenes
 ## Ejemplos de simulaciones en consola
 
 A continuación se muestran algunos ejemplos visuales de simulaciones realizadas en este repositorio. Estas simulaciones ayudan a entender y practicar la lógica de control de procesos y la representación visual de sistemas en la terminal.
@@ -52,10 +52,6 @@ A continuación se muestran algunos ejemplos visuales de simulaciones realizadas
 
 ---
 
-- `Config cisco/` — Configuraciones y guías de redes Cisco, VLSM, CCNA, CCST
-- `Coursera python IT/` — Ejercicios y tareas de cursos de Python
-- `Elmercurio_webScraper/` — Scripts de scraping y automatización web
-- `ruby/` — Scripts en Ruby para glitchear imagenes
 
 
 
