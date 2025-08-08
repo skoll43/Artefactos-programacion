@@ -1,0 +1,2 @@
+Este es un commit de prueba para verificar el push por SSH.
+Fecha: 8 de agosto de 2025
